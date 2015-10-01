@@ -18,9 +18,6 @@
 #define DISPHEIGHT 13
 #define PXPERSTRIP = 24
 
-// When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
-// Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
-// example for more information on possible values.
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 int delayval = 30; // delay for half a second
 unsigned int a = 0;
@@ -44,31 +41,21 @@ void setup() {
   m_green = 0;
   pixels.begin(); // This initializes the NeoPixel library.
   //assign pxarr
-  for(int i = 0 ; i < 3; i ++){
-    int tmp = (i % 24);
 
-  }
-  initializeLedIndex();
-  
   int r = 100;
   int g = 35;
   int b = 55;
-  long rgb = rgb232(r,g,b);
-  Serial.println("rgb here");
-  Serial.println(rgb);
-  
-  Serial.println("r is ");
-  Serial.println((rgb >> 16) & 0xff);
-  
-    Serial.println("g is ");
-  Serial.println((rgb >> 8) & 0xff);
-  
-    Serial.println("b is ");
-  Serial.println(rgb & 0xff);
-  
+  long rgb = get32Color(r,g,b);
+ 
   for(int i = 0; i < 24; i ++){
     ledIndex[i] = rgb;
   }
+  
+   AssignRandomColor();
+  Serial.println("printing pxarr");
+  Serial.println(pxArr[10]);
+  initializeLedIndex();
+  
   
   for(int i=0;i<NUMPIXELS;i++){
     
@@ -214,22 +201,47 @@ void initializeLedIndex(){
   ledIndex[1] = pxArr[7];
   ledIndex[23] = pxArr[5];
   ledIndex[22] = pxArr[4+DISPWIDTH];
-  ledIndex[3] = pxArr[8+DISPWIDTH];
+  ledIndex[2] = pxArr[8+DISPWIDTH];
   ledIndex[21] = pxArr[3+DISPWIDTH*2];
   ledIndex[20] = pxArr[2+DISPWIDTH*2];
   ledIndex[3] = pxArr[9+DISPWIDTH*2];
   ledIndex[4] = pxArr[10+DISPWIDTH*2];
   ledIndex[19] = pxArr[1+DISPWIDTH*4];
   ledIndex[5] = pxArr[11+DISPWIDTH*4];
-  
+  ledIndex[18] = pxArr[1+DISPWIDTH*6];
+  ledIndex[6] = pxArr[11+DISPWIDTH*6];
+  ledIndex[17] = pxArr[1+DISPWIDTH*7];
+  ledIndex[7] = pxArr[11+DISPWIDTH*7];
+  ledIndex[16] = pxArr[1+DISPWIDTH*9];
+  ledIndex[8] = pxArr[11+DISPWIDTH*9];
+  ledIndex[15] = pxArr[2+DISPWIDTH*10];
+  ledIndex[9] = pxArr[10+DISPWIDTH*10];
+  ledIndex[14] = pxArr[3+DISPWIDTH*11];
+  ledIndex[10] = pxArr[9+DISPWIDTH*11];
+  ledIndex[13] = pxArr[5+DISPWIDTH*12];
+  ledIndex[12] = pxArr[6+DISPWIDTH*12];
+  ledIndex[11] = pxArr[7+DISPWIDTH*12];
 }
 
-long rgb232(unsigned int r, unsigned int g, unsigned int b)
+
+void AssignRandomColor(){
+        int s = DISPWIDTH * DISPHEIGHT;
+        unsigned int r = (int)(random(58));
+        unsigned int g = (int)(random(24));
+        unsigned int b = (int)(random(24));
+     for(int i = 0 ; i < s; i ++){
+           randomSeed(micros());
+           r = (int)(random(58));
+           g = (int)(random(24));
+           b = (int)(random(24));
+       pxArr[i] = get32Color(r,g,b);
+       //   pxArr[i] = get32Color(0,0,0);
+     }
+ }
+
+long get32Color(unsigned int r, unsigned int g, unsigned int b)
 {
- // long res = 0L;
   long red = r;
   return (red << 16) | (g << 8) | b;
-  Serial.println("function");
-  Serial.println(red<<16);
- // return res;
+ 
 }
