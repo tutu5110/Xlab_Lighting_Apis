@@ -30,12 +30,17 @@ int m = DISPWIDTH;
 int l = DISPHEIGHT;
 unsigned long pxArr[DISPWIDTH * DISPHEIGHT];
 unsigned long ledIndex[24];
+String tmp;
+// Serial Communication
+char val; 
+
 
 void setup() {
   #if defined (__AVR_ATtiny85__)
     if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
   #endif  
-  Serial.begin(9600);                
+  Serial.begin(9600);  
+
   m_blue = 0;
   m_red = 0;
   m_green = 0;
@@ -80,10 +85,23 @@ void setup() {
 //changeColor(1,23,25,25,true);
 //changeColor(2,23,25,25,true);
 //changeColor(3,23,25,25,true);
+  establishSerialContact();
 }
 
 void loop() {
+    if (Serial.available() > 0) { // If data is available to read,
+    val = Serial.read(); // read it and store it in val
 
+    if(val == '1') //if we get a 1
+    {
+      Serial.println("XL_RECEIVING...");
+    }
+    delay(100);
+  } 
+    else {
+    Serial.println("XL_WAITING"); //send back a hello world
+    delay(50);
+    }
 }
 
 
@@ -244,4 +262,11 @@ long get32Color(unsigned int r, unsigned int g, unsigned int b)
   long red = r;
   return (red << 16) | (g << 8) | b;
  
+}
+
+void establishSerialContact() {
+  while (Serial.available() <= 0) {
+  Serial.println("A");   // send a capital A
+  delay(300);
+  }
 }
