@@ -39,8 +39,8 @@ void setup() {
   #if defined (__AVR_ATtiny85__)
     if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
   #endif  
-  Serial.begin(9600);  
-
+  Serial.begin(115200);  
+//  Serial.setTimeout(50);
   m_blue = 0;
   m_red = 0;
   m_green = 0;
@@ -85,7 +85,7 @@ void setup() {
 //changeColor(1,23,25,25,true);
 //changeColor(2,23,25,25,true);
 //changeColor(3,23,25,25,true);
-  establishSerialContact();
+  //establishSerialContact();
 }
 
 void loop() {
@@ -94,14 +94,14 @@ void loop() {
 
     if(val == '1') //if we get a 1
     {
-      Serial.println("XL_RECEIVING...");
+      fadeToColor(1,0,0,0,true);
+      fadeToColor(2,0,0,0,true);
+      fadeToColor(3,0,0,0,true);
+      fadeToColor(4,0,0,0,true);
+
     }
-    delay(100);
+    delay(10);
   } 
-    else {
-    Serial.println("XL_WAITING"); //send back a hello world
-    delay(50);
-    }
 }
 
 
@@ -112,7 +112,7 @@ void updateAllPixels(){
 }
 
 void fadeToColor(int quad, int r, int g, int b){
-   int _time = 5;
+   int _time = 50;
   int _start = quad - 1;
   if(_start < 0 ) _start = 0;
   _start = _start * PXQUADS;
@@ -129,8 +129,9 @@ void fadeToColor(int quad, int r, int g, int b){
       m_blue = getColorIncrement(m_blue,b);
       pixels.setPixelColor(i, pixels.Color(confine(m_red,r),confine(m_green,g),confine(m_blue,b)));
        delay(_time);
+           pixels.show();
    }
-    pixels.show();
+
 }
 
 
