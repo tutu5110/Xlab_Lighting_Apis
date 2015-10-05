@@ -24,7 +24,7 @@ int confine(int num, int upperlimit)
     return upperlimit;
     return num;
 }
-void LedSplit(String t)
+void AssembleData(String t)
 {
    char str[t.length()];
    t.toCharArray(str, t.length());
@@ -32,29 +32,27 @@ void LedSplit(String t)
    char *token;
    token = strtok(str, s);
    int lct = 0;
-   ledIndex[lct] = atol(token);
+   Serial.println(t);
+   long result = atol(token);
+   ledIndex[lct] = result;
+   ha[ACounter] = result;
+   lct++;
+   ACounter++;
    while( token != NULL ) 
    {
       printf( " %s\n", token );
-    
       token = strtok(NULL, s);
-      ledIndex[lct] = atol(token);
+      result = atol(token);
+      ledIndex[lct] = result;
+      ha[ACounter] = result;      
       lct++;
+      ACounter++;
    }
    lct = 0;
+   ACounter = 0 ;
    free(token);
-
-//    char *p = new char[t.length()+1];
-//    strcpy(p, t.c_str());
-//   char *str;
-//    int ct = 0;
-//    while ((str = strtok_r(p, ",", &p)) != NULL)
-//    {
-//     str = strtok_r(p, ",", &p);
-//    ledIndex[0] = atoi(str);
-//       ct++;
-//    }
-//    free(p);
-//    free(str);
-//    ct = 0;
-}
+//   if(Acounter != 7){
+////       Serial.println("
+//   }
+//   Serial.println("haha");
+  }

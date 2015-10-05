@@ -13,6 +13,7 @@ String colorOutputStr = "";
 int ct = 0;
 int color32 = 0;
 int test = 0;
+int tt = 0 ;
 int rgbReturn = 0 ;
 String rgbStrBuilder = "";
 void setup() 
@@ -106,8 +107,30 @@ void serialEvent( Serial myPort) {
 //      
 //     
 //    }
-   
-   for(int i = 0 ; i < 5; i ++){
+     
+     //put the incoming data into a String - 
+//the '\n' is our end delimiter indicating the end of a complete packet
+val = myPort.readStringUntil('\n');
+//make sure our data isn't empty before continuing
+if (val != null) {
+  //trim whitespace and formatting characters (like carriage return)
+  val = trim(val);
+
+  //look for our 'A' string to start the handshake
+  //if it's there, clear the buffer, and send a request for data
+  if (firstContact == false) {
+    if (val.equals("A")) {
+      myPort.clear();
+      firstContact = true;
+      myPort.write("A");
+      println("contact");
+    }
+  }
+  else { //if we've already established contact, keep getting and parsing data
+    println(val);
+
+    
+   for(int i = 0 ; i < 15; i ++){
       rgbReturn = rgb232(int(random(38)),int(random(38)),int(random(10)));
       rgbStrBuilder =  rgbReturn + "";
       while(rgbStrBuilder.length() < 7){
@@ -116,11 +139,19 @@ void serialEvent( Serial myPort) {
       
       a = a + rgbStrBuilder+",";
      }
-     a = "P1,A0," + a.substring(0,a.length()-1)+'\0';
-     //println("P:" + a);
-    // println("a size:" + a.length());
+     a = "1,"+tt+"," + a.substring(0,a.length()-1)+'\0';
      myPort.write(a);
      a = "";
+   
+     tt++;
+     if(tt>6)
+       tt = 0;
+     
+    // when you've parsed the data you have, ask for more:
+     //myPort.write("A");
+    }
+  }
+  
      
 //     
 //     for(int i = 25; i < 40; i ++){
