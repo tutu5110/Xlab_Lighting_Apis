@@ -16,6 +16,7 @@ int test = 0;
 int tt = 0 ;
 int rgbReturn = 0 ;
 String rgbStrBuilder = "";
+int testColor = 10;
 void setup() 
 {
   size(300,300); 
@@ -130,8 +131,8 @@ if (val != null) {
     println(val);
 
     
-   for(int i = 0 ; i < 15; i ++){
-      rgbReturn = rgb232(int(random(38)),int(random(38)),int(random(10)));
+   for(int i = 0 ; i < 16; i ++){
+      rgbReturn = rgb232(testColor,testColor,testColor);
       rgbStrBuilder =  rgbReturn + "";
       while(rgbStrBuilder.length() < 7){
           rgbStrBuilder = "0"+rgbStrBuilder;
@@ -144,9 +145,10 @@ if (val != null) {
      a = "";
    
      tt++;
-     if(tt>6)
+     if(tt>6){
        tt = 0;
-     
+       testColor = int(random(15));
+     }
     // when you've parsed the data you have, ask for more:
      //myPort.write("A");
     }
