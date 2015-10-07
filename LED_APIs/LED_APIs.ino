@@ -14,10 +14,11 @@
 #define DISPWIDTH 13
 #define DISPHEIGHT 13
 #define PXPERSTRIP  24
-#define NOPACKAGES  7
+#define NOPACKAGES  4
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 int delayval = 5;
+int PACKAGESIZE = 1;
 unsigned int a = 0;
 unsigned int quadrant;
 int m_blue;
@@ -28,6 +29,7 @@ int m = DISPWIDTH;
 int l = DISPHEIGHT;
 int lastUpdate = 0;
 int ACounter = 0;
+boolean firstContact = false;
 int currentPackage = 1;
 boolean sections[NOPACKAGES];
 boolean gReadyToUpdate = false;
@@ -47,9 +49,9 @@ void setup()
     m_red = 0;
     m_green = 0;
     pixels.begin();
-    int r = 12;
-    int g = 12;
-    int b = 22;
+    int r = 3;
+    int g = 5;
+    int b = 6;
     long rgb = get32Color(r,g,b);
     for(int i = 0; i < NUMPIXELS; i ++)
     {
@@ -64,7 +66,7 @@ void setup()
         delay(delayval); // Delay for a period of time (in milliseconds).
     }
     Serial.begin(115200); // RFID reader SOUT pin connected to Serial RX pin at 2400bps
-    Serial.setTimeout(500);
+    Serial.setTimeout(1000);
    // fadeToColor(1,0,0,0,true);
     establishContact(); // send a byte to establish contact until receiver responds
 }
@@ -73,16 +75,20 @@ void loop()
     
    if (Serial.available() > 0) { // If data is available to read,
     tmp = Serial.readStringUntil('\0'); // read it and store it in val
-        
-     // Serial.println(tmp);
+   
+     
+   //  Serial.println(tmp);
   //  Serial.println(tmp.length());
+    //setPackageSize(tmp);
     if(!pause)
-       AssembleData(tmp);
+      AssembleData(tmp);
 //     Serial.flush();
-    delay(0);
-     } 
-    else {
-    Serial.println("FA"); //send back a hello world
+    
+//      delay(1);
+     } else {
+     Serial.println("ready");
+//    Serial.println("Serial waiting for processing"); //send back a hello world
+
     delay(1);
     }
     

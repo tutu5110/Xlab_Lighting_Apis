@@ -163,8 +163,9 @@ void updateAllPixels(){
           pixels.setPixelColor(i, pixels.Color((ledIndex[i] >> 16) & 0xff,(ledIndex[i] >> 8) & 0xff, ledIndex[i] & 0xff)); // Moderately bright green color.
          
          // delay(delayval); // Delay for a period of time (in milliseconds).
-      }
-       pixels.show(); // This sends the updated pixel color to the hardware.
+        // delay(1);
+          }
+      pixels.show(); // This sends the updated pixel color to the hardware.
     
 }
 
