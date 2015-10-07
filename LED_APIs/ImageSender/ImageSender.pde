@@ -21,29 +21,35 @@ int testColor = 10;
 int gct = 0;
 int te = 0;
 int di = 1;
-long ledIndex;
-int dispWidth = 30;
-int dispHeight = 30;
-long pxArr[];
+int[] ledIndex;
+int DISPWIDTH = 30;
+int DISPHEIGHT = 30;
+int[] pxArr;
 void setup() {
-    size(300, 300);
-    frameRate(60);
+    size(30, 30);
+    frameRate(1);
     println("gifAnimation " + Gif.version());
-    loopingGif = new Gif(this, "ellipse.gif");
+    loopingGif = new Gif(this, "number.gif");
     // loopingGif.loop();
     //loopingGif.play();
-    animation = Gif.getPImages(this, "ellipse.gif");
+    animation = Gif.getPImages(this, "number.gif");
     println(Serial.list());
     String portName = Serial.list()[2];
     colorsOutput = new String[0];
     myPort = new Serial(this, portName, 115200);
     myPort.bufferUntil('\n');
     serialReady = true;
-    pxArr = new long[dispWidth * dispHeight];
-    //myPort.bufferUntil('n');
+    ledIndex = new int[96];
+    pxArr = new int[DISPWIDTH * DISPHEIGHT];
+   for(int i = 0 ; i < ledIndex.length; i ++){
+     ledIndex[i] = 0;
+   }
+    
+    
+   
 }
 void draw() {
-    image(animation[ct], 0, 0);
+   image(animation[ct], 0, 0);
     loadPixels();
     int j = 0;
     int r = 0;
@@ -51,24 +57,31 @@ void draw() {
     int b = 0;
     color c;
     String colors = "";
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 900; i++) {
         c = pixels[i];
         // colors = colors +"(" +(int)(red(c)/2)+","+(int)(green(c)/2)+","+(int)(blue(c)/2)+");
         r = (int)(red(c) / 2);
         g = (int)(green(c) / 2);
         b = (int)(blue(c) / 2);
         color32 = rgb232(r, g, b);
-        colors = colors + color32 + ",";
+        pxArr[i] = color32;
+        //colors = colors + color32 + ",";
     }
-    colorOutputStr = colors;
+    updateIndex(0);
+    updateIndex(1);
+    updateIndex(2);
+    updateIndex(3);
 ct++;
 if (ct > (animation.length - 1))
 ct = 0;
+
 }
 
 
 void serialEvent(Serial myPort) {
     String a = "";
+    int beginIndex = tt * 24;
+    int endIndex = tt* 24 + 24;
     val = myPort.readStringUntil('\n');
     if (val != null) {
         val = trim(val);
@@ -82,8 +95,9 @@ void serialEvent(Serial myPort) {
         else {
             println(val);
             if (val.equals("ready")) {
-                for (int i = 0;i < 24;i++) {
-                    rgbReturn = rgb232(testColor, testColor, testColor);
+                for (int i = beginIndex;i < endIndex;i++) {
+                   // rgbReturn = rgb232(testColor, testColor, testColor);
+                    rgbReturn = ledIndex[i];
                     rgbStrBuilder = rgbReturn + "";
                     while (rgbStrBuilder.length() < 7) {
                         rgbStrBuilder = "0" + rgbStrBuilder;
@@ -113,6 +127,8 @@ void serialEvent(Serial myPort) {
     }
     colorOutputStr = "";
 }
+
+
 void mouseReleased() {
     //if we clicked in the window
     if (mouseButton == LEFT) {
