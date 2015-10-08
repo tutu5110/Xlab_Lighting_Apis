@@ -27,12 +27,12 @@ int DISPHEIGHT = 30;
 int[] pxArr;
 void setup() {
     size(30, 30);
-    frameRate(1);
+    frameRate(15);
     println("gifAnimation " + Gif.version());
-    loopingGif = new Gif(this, "number.gif");
+    loopingGif = new Gif(this, "color1.gif");
     // loopingGif.loop();
     //loopingGif.play();
-    animation = Gif.getPImages(this, "number.gif");
+    animation = Gif.getPImages(this, "color1.gif");
     println(Serial.list());
     String portName = Serial.list()[2];
     colorsOutput = new String[0];
