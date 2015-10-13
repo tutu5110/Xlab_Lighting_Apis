@@ -1,11 +1,13 @@
-/****** APIs for XLAB Light Panels ******/
-/****** Jing Qian **********/
+/* XLab Lighting Main Software.
+***************************
+** written by Jing Qian ***
+*/
+
+
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
-// Which pin on the Arduino is connected to the NeoPixels?
-// On a Trinket or Gemma we suggest changing this to 1
 #define PIN 6
 #define NUMPIXELS 96
 #define NOQUADS 4
@@ -15,7 +17,6 @@
 #define DISPHEIGHT 13
 #define PXPERSTRIP  24
 #define NOPACKAGES  4
-
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 int delayval = 5;
 int PACKAGESIZE = 1;
@@ -40,6 +41,7 @@ String tmp;
 char val;
 boolean animating = false;
 boolean readyUpdate = false;
+
 void setup()
 {
     #if defined (__AVR_ATtiny85__)
@@ -57,46 +59,41 @@ void setup()
     {
         ledIndex[i] = rgb;
     }
-  //  AssignRandomColor();
-   // initializeLedIndex();
     for(int i=0;i<NUMPIXELS;i++)
     {
-        pixels.setPixelColor(i, pixels.Color((ledIndex[i] >> 16) & 0xff,(ledIndex[i] >> 8) & 0xff, ledIndex[i] & 0xff)); // Moderately bright green color.
-        pixels.show(); // This sends the updated pixel color to the hardware.
-        delay(delayval); // Delay for a period of time (in milliseconds).
+        // give panels a light blue for preview
+        pixels.setPixelColor(i, pixels.Color((ledIndex[i] >> 16) & 0xff,(ledIndex[i] >> 8) & 0xff, ledIndex[i] & 0xff)); 
+        // This sends the updated pixel color to the hardware.
+        pixels.show(); 
+        // Delay for a period of time (in milliseconds).
+        delay(delayval); 
     }
-    Serial.begin(115200); // RFID reader SOUT pin connected to Serial RX pin at 2400bps
+    //  Begin Serials.
+    Serial.begin(115200);
+    //  Set Serial timeout.
     Serial.setTimeout(1000);
-   // fadeToColor(1,0,0,0,true);
-    establishContact(); // send a byte to establish contact until receiver responds
+    //  Establish Contact
+    establishContact(); 
 }
+
 void loop()
 {
-    
-   if (Serial.available() > 0) { // If data is available to read,
-    tmp = Serial.readStringUntil('\0'); // read it and store it in val
-   
-     
-   //  Serial.println(tmp);
-  //  Serial.println(tmp.length());
-    //setPackageSize(tmp);
-    if(!pause)
-      AssembleData(tmp);
-//     Serial.flush();
-    
-//      delay(1);
+    // If data is available to read,
+    if (Serial.available() > 0) { 
+    // read it and store it in val
+    tmp = Serial.readStringUntil('\0');
+     if(!pause)
+      AssembleData(tmp);    
+      delay(1);
      } else {
-     Serial.println("ready");
-//    Serial.println("Serial waiting for processing"); //send back a hello world
-
-    delay(1);
+      // Constantly Communicating With Java/Processing end to make sure the connection stays alive.
+      Serial.println("ready");
+      delay(1);
     }
-    
+
     if(animating)
     {
        // fadeToColor(1,0,0,0,true);
         animating = false;
     }
-    
-   // updateAllPixels();
 }

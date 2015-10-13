@@ -1,7 +1,117 @@
+/* XLab Lighting Panel API Functions
+***************************
+High Level APIs:
 
+Func: AssembleData - Assemble Packages sent from Serial sender. 
 
-/********* Single Panel Functions *************/
+Func: fadeToColor - fade a section of led to destination color
 
+Func: changeToColor - change to destination color without fading.
+
+** written by Jing Qian ***
+
+*/
+
+/**********************************************/
+ /********* All Panel Functions *************/
+ 
+void AssembleData(String SerialPackageData)
+{
+   // Sanity Check, make sure you know the data length before continue
+   int SDataLength = 196;
+   if(SerialPackageData.length() != SDataLength){
+     return;
+   }
+   //  How many data per package;
+   int NumDataPoints = 24;
+   //  Create Variables to prepare serial data for "splitting", namely, install them into arrays
+   char str[SerialPackageData.length()];
+   SerialPackageData.toCharArray(str, SerialPackageData.length());
+   const char s[2] = ",";
+   boolean inputData = false;
+   int multi = 0;
+   char *token;
+   int lct = 0;
+   int ledIndexCt = 0;
+   String zz = "";
+   token = strtok(str, s);
+   // Frist result should be P1,or P2, or ...Pn, the ID of package
+   long result = atol(token);
+   while( token != NULL ) 
+   {
+      printf( " %s\n", token );
+      token = strtok(NULL, s);
+      result = atol(token);
+       if(inputData == false){
+        inputData = true;
+        sections[result] = true;
+        multi = result;
+       } else{
+         ledIndexCt = (lct + (multi * NumDataPoints));
+         if(ledIndexCt < NUMPIXELS){
+            ledIndex[ledIndexCt] = result;   
+            lct++;
+         }
+      }
+   }
+   //  Reset the counters
+   multi = 0;
+   lct = 0;
+   free(token);
+   //  check if all packages has been sent
+   for(int i = 0 ; i < NOPACKAGES; i ++){
+     if(sections[i])
+     {
+        gReadyToUpdate = true;
+     } else {
+       gReadyToUpdate = false;
+       break;
+     }
+   }
+   
+   if(gReadyToUpdate){
+     updateAllPixels();
+     // reset all sections
+     for(int i = 0 ; i < NOPACKAGES; i ++){
+      sections[i] = false;
+     }
+     // reset updater
+      gReadyToUpdate =  false;
+   }
+ }
+ 
+ /**********************************************/
+ /********* Single Panel Functions *************/
+ 
+/* Change led color in a quad of the loop, with animation. */ 
+boolean fadeToColor(int quad, int r, int g, int b, boolean animated){
+  int _time = 25;  
+  int _start = quad - 1;
+  if(_start < 0 ) _start = 0;
+  _start = _start * PXQUADS;
+  int _end = quad * PXQUADS;
+  int index = (_end - _start) * 30;
+  int lightCount = 0;
+  uint32_t color = pixels.getPixelColor(_end);
+  for(int i = 0; i < index; i ++){
+    color = pixels.getPixelColor(lightCount);
+    m_red = (color >> 16) & 0xff;
+    m_green = (color >> 8) & 0xff;
+    m_blue = color & 0xff;  
+    m_red  = getColorChange(m_red,r);
+    m_green = getColorChange(m_green,g);
+    m_blue = getColorChange(m_blue,b);
+    pixels.setPixelColor(lightCount, pixels.Color(m_red,m_green,m_blue));
+    // When counter > 30, move to next led in the strip
+    if(i % 30 == 0){
+      lightCount ++;
+    }
+    delay(_time);
+    pixels.show();
+  }
+}
+
+/* DEPLETED */ 
 void fadeToColor(int quad, int r, int g, int b){
   int _time = 50;
   int _start = quad - 1;
@@ -22,42 +132,14 @@ void fadeToColor(int quad, int r, int g, int b){
     delay(_time);
     pixels.show();
   }
-
 }
 
-
-boolean fadeToColor(int quad, int r, int g, int b, boolean animated){
-  int _time = 25;  
-  int _start = quad - 1;
-  if(_start < 0 ) _start = 0;
-  _start = _start * PXQUADS;
-  int _end = quad * PXQUADS;
-  int index = (_end - _start) * 30;
-  int lightCount = 0;
-  uint32_t color = pixels.getPixelColor(_end);
-  for(int i = 0; i < index; i ++){
-    color = pixels.getPixelColor(lightCount);
-    m_red = (color >> 16) & 0xff;
-    m_green = (color >> 8) & 0xff;
-    m_blue = color & 0xff;  
-    m_red  = getColorChange(m_red,r);
-    m_green = getColorChange(m_green,g);
-    m_blue = getColorChange(m_blue,b);
-    pixels.setPixelColor(lightCount, pixels.Color(m_red,m_green,m_blue));
-    if(i % 30 == 0){
-      lightCount ++;
-    }
-    delay(_time);
-    pixels.show();
-  }
-}
-
-// Change led color in a quad of the loop, without animation.
+/* Change led color in a quad of the loop, with NO animation. */ 
 void changeColor(int quad, int r, int g, int b){
   changeColor(quad,r,g,b,false);
 }
 
-// Change led color in a quad of the loop, with animation.
+/* Change led color in a quad of the loop, with animation. */ 
 void changeColor(int quad, int r, int g, int b, boolean animated){
   int _time = 50;
   int _start = quad - 1;
@@ -74,99 +156,58 @@ void changeColor(int quad, int r, int g, int b, boolean animated){
   pixels.show();
 }
 
+/* Func Replaces getColorIncrement */
+int getColorChange(int a, int b){
+  if(a>b){
+    if(a>10)
+       a = a * 0.9;
+     else
+       a-= 3;
+  } else {
+    if(a>110)
+       a += 3;
+     else
+       a = a * 1.1;
+  }
+  a = confine(a, 0,128);
+  return a;
+}
 
+/* Func returns a random 32-bit color for a pixel */
+long getRandomColor(int r, int g, int b){
+   randomSeed(micros());
+   r = (int)(random(r));
+   g = (int)(random(g));
+   b = (int)(random(b));
+   return get32Color(r,g,b);
+}
+
+/* Func determines whether it should be increasing or decreasing color values */
+int getColorIncrement(int a, int b){
+  if(a>b){
+    a--;
+    return a;
+  } else {
+    a++;
+    return a;
+  }
+}
+
+/* Update all Led pixels at once */
+void updateAllPixels(){
+  for(int i=0;i<NUMPIXELS;i++)
+      {
+          pixels.setPixelColor(i, pixels.Color((ledIndex[i] >> 16) & 0xff,(ledIndex[i] >> 8) & 0xff, ledIndex[i] & 0xff)); 
+      }
+  pixels.show(); 
+}
+
+/* convert r,g,b to 32 bit long */
 long get32Color(unsigned int r, unsigned int g, unsigned int b)
 {
   long red = r;
   return (red << 16) | (g << 8) | b;
 
-}
-
-
-int getColorChange(int a, int b){
-  if(a>b){
-    if(a>10)
-      a = a * 0.9;
-     else
-      a-= 3;
-  } else {
-    if(a>110)
-       a += 3;
-     else
-     a = a * 1.1;
-  }
-   a = confine(a, 0,128);
-  return a;
-}
-
-
-void AssignRandomColor(){
-  int s = DISPWIDTH * DISPHEIGHT;
-  unsigned int r = (int)(random(58));
-  unsigned int g = (int)(random(24));
-  unsigned int b = (int)(random(24));
-  for(int i = 0 ; i < s; i ++){
-    randomSeed(micros());
-    r = (int)(random(58));
-    g = (int)(random(24));
-    b = (int)(random(24));
-//    pxArr[i] = get32Color(r,g,b);
-    //   pxArr[i] = get32Color(0,0,0);
-  }
-}
-
-
-
-//void initializeLedIndex(){
-//  ledIndex[0] = pxArr[6];
-//  ledIndex[1] = pxArr[7];
-//  ledIndex[23] = pxArr[5];
-//  ledIndex[22] = pxArr[4+DISPWIDTH];
-//  ledIndex[2] = pxArr[8+DISPWIDTH];
-//  ledIndex[21] = pxArr[3+DISPWIDTH*2];
-//  ledIndex[20] = pxArr[2+DISPWIDTH*2];
-//  ledIndex[3] = pxArr[9+DISPWIDTH*2];
-//  ledIndex[4] = pxArr[10+DISPWIDTH*2];
-//  ledIndex[19] = pxArr[1+DISPWIDTH*4];
-//  ledIndex[5] = pxArr[11+DISPWIDTH*4];
-//  ledIndex[18] = pxArr[1+DISPWIDTH*6];
-//  ledIndex[6] = pxArr[11+DISPWIDTH*6];
-//  ledIndex[17] = pxArr[1+DISPWIDTH*7];
-//  ledIndex[7] = pxArr[11+DISPWIDTH*7];
-//  ledIndex[16] = pxArr[1+DISPWIDTH*9];
-//  ledIndex[8] = pxArr[11+DISPWIDTH*9];
-//  ledIndex[15] = pxArr[2+DISPWIDTH*10];
-//  ledIndex[9] = pxArr[10+DISPWIDTH*10];
-//  ledIndex[14] = pxArr[3+DISPWIDTH*11];
-//  ledIndex[10] = pxArr[9+DISPWIDTH*11];
-//  ledIndex[13] = pxArr[5+DISPWIDTH*12];
-//  ledIndex[12] = pxArr[6+DISPWIDTH*12];
-//  ledIndex[11] = pxArr[7+DISPWIDTH*12];
-//}
-
-int getColorIncrement(int a, int b){
-  if(a>b){
-    a = a - 1;
-    return a;
-  }
-  else{
-    a = a +1;
-    return a;
-  }
-}
-
-void updateAllPixels(){
-
-    
-     for(int i=0;i<NUMPIXELS;i++)
-      {
-          pixels.setPixelColor(i, pixels.Color((ledIndex[i] >> 16) & 0xff,(ledIndex[i] >> 8) & 0xff, ledIndex[i] & 0xff)); // Moderately bright green color.
-         
-         // delay(delayval); // Delay for a period of time (in milliseconds).
-        // delay(1);
-          }
-      pixels.show(); // This sends the updated pixel color to the hardware.
-    
 }
 
 
